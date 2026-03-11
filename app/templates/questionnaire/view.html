@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}{{ questionnaire.original_filename }} - QuestAI{% endblock %}
+
+{% block content %}
+<div class="questionnaire-view">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1>{{ questionnaire.original_filename }}</h1>
+            <p class="meta">
+                <span class="status-badge status-{{ questionnaire.status }}">{{ questionnaire.status.title() }}</span>
+                <span><i class="fas fa-calendar"></i> {{ questionnaire.upload_date.strftime('%Y-%m-%d') }}</span>
+            </p>
+        </div>
+        <div class="header-actions">
+            {% if questionnaire.status == 'completed' %}
+            <div class="export-dropdown">
+                <button class="btn btn-primary" onclick="toggleExportMenu()">
+                    <i class="fas fa-download"></i> Export <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-menu" id="exportMenu">
+                    <a href="{{ url_for('questionnaire.export_questionnaire', id=questionnaire.id, format='docx') }}">
+                        <i class="fas fa-file-word"></i> Word (.docx)
+                    </a>
+                    <a href="{{ url_for('questionnaire.export_questionnaire', id=questionnaire.id, format='xlsx') }}">
+                        <i class="fas fa-file-excel"></i> Excel (.xlsx)
+                    </a>
+                    <a href="{{ url_for('questionnaire.export_questionnaire', id=questionnaire.id, format='pdf') }}">
+                        <i class="fas fa-file-pdf"></i> PDF (.pdf)
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Coverage Summary -->
+    {% if coverage_stats.total > 0 %}
+    <div class="coverage-summary">
+        <h3><i class="fas fa-chart-pie"></i> Coverage Summary</h3>
+        <div class="coverage-stats">
+            <div class="coverage-item">
+                <span class="coverage-value">{{ coverage_stats.total }}</span>
+                <span class="coverage-label">Total Questions</span>
+            </div>
+            <div class="coverage-item success">
+                <span class="coverage-value">{{ coverage_stats.with_citations }}</span>
+                <span class="coverage-label">With Citations</span>
+            </div>
+            <div class="coverage-item warning">
+                <span class="coverage-value">{{ coverage_stats.not_found }}</span>
+                <span class="coverage-label">Not Found</span>
+            </div>
+            <div class="coverage-item">
+                <span class="coverage-value">{{ "%0.0f"|format(coverage_stats.coverage_pct) }}%</span>
+                <span class="coverage-label">Coverage</span>
+            </div>
+        </div>
+        <div class="progress-bar large">
+            <div class="progress-fill" style="width: {{ coverage_stats.coverage_pct }}%"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Generate Button -->
+    {% if questionnaire.status != 'completed' %}
+    <div class="generate-section">
+        <form action="{{ url_for('questionnaire.generate_answers', id=questionnaire.id) }}" method="POST">
+            <button type="submit" class="btn btn-large btn-success">
+                <i class="fas fa-magic"></i> Generate Answers
+            </button>
+            <p class="generate-hint">This will analyze your reference documents and generate answers with citations.</p>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Questions List -->
+    <div class="questions-list">
+        {% for question in questions %}
+        <div class="question-card" id="question-{{ question.id }}">
+            <div class="question-header">
+                <span class="question-number">Q{{ question.question_number }}</span>
+                {% if question.category %}
+                <span class="category-badge">{{ question.category }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="question-text">{{ question.question_text }}</div>
+            
+            {% if question.answers %}
+            {% set answer = question.answers[0] %}
+            <div class="answer-section">
+                <div class="answer-label">
+                    <i class="fas fa-comment-dots"></i> Answer
+                    {% if answer.is_edited %}
+                    <span class="edited-badge"><i class="fas fa-edit"></i> Edited</span>
+                    {% endif %}
+                </div>
+                
+                <div class="answer-content" id="answer-display-{{ question.id }}">
+                    {{ answer.answer_text }}
+                </div>
+                
+                <!-- Answer Editor (Hidden by default) -->
+                <div class="answer-editor" id="answer-editor-{{ question.id }}" style="display: none;">
+                    <textarea class="answer-textarea" id="answer-textarea-{{ question.id }}">{{ answer.answer_text }}</textarea>
+                    <div class="editor-actions">
+                        <button class="btn btn-small btn-primary" onclick="saveAnswer({{ question.id }})">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <button class="btn btn-small btn-secondary" onclick="cancelEdit({{ question.id }})">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Confidence Score -->
+                {% if answer.confidence_score is not none %}
+                <div class="confidence-badge score-{{ (answer.confidence_score * 100)|int // 25 }}">
+                    <i class="fas fa-signal"></i>
+                    Confidence: {{ "%0.0f"|format(answer.confidence_score * 100) }}%
+                </div>
+                {% endif %}
+                
+                <!-- Citations -->
+                {% if answer.citations %}
+                <div class="citations">
+                    <div class="section-label"><i class="fas fa-link"></i> Citations:</div>
+                    <ul>
+                        {% for citation in answer.citations %}
+                        <li>
+                            <i class="fas fa-file-alt"></i>
+                            {{ citation.document.original_filename }}
+                            {% if citation.page_number %}
+                            (Page {{ citation.page_number }})
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Evidence Snippets -->
+                {% if answer.evidence_snippets %}
+                <div class="evidence-snippets">
+                    <div class="section-label"><i class="fas fa-quote-left"></i> Evidence:</div>
+                    {% for snippet in answer.evidence_snippets %}
+                    <div class="snippet">
+                        <div class="snippet-text">"{{ snippet.snippet_text[:300] }}{% if snippet.snippet_text|length > 300 %}...{% endif %}"</div>
+                        <div class="snippet-source">
+                            <i class="fas fa-file-alt"></i> {{ snippet.document.original_filename }}
+                            {% if snippet.relevance_score %}
+                            <span class="relevance">Relevance: {{ "%0.0f"|format(snippet.relevance_score * 100) }}%</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Actions -->
+                <div class="answer-actions">
+                    <button class="btn btn-small btn-secondary" onclick="enableEdit({{ question.id }})">
+                        <i class="fas fa-edit"></i> Edit Answer
+                    </button>
+                    <button class="btn btn-small btn-secondary" onclick="regenerateQuestion({{ question.id }})">
+                        <i class="fas fa-redo"></i> Regenerate
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div class="no-answer">
+                <i class="fas fa-hourglass-half"></i>
+                <span>Answer not yet generated</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleExportMenu() {
+    const menu = document.getElementById('exportMenu');
+    menu.classList.toggle('show');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    const dropdown = document.querySelector('.export-dropdown');
+    if (!dropdown.contains(e.target)) {
+        document.getElementById('exportMenu').classList.remove('show');
+    }
+});
+
+function enableEdit(questionId) {
+    document.getElementById('answer-display-' + questionId).style.display = 'none';
+    document.getElementById('answer-editor-' + questionId).style.display = 'block';
+}
+
+function cancelEdit(questionId) {
+    document.getElementById('answer-display-' + questionId).style.display = 'block';
+    document.getElementById('answer-editor-' + questionId).style.display = 'none';
+}
+
+function saveAnswer(questionId) {
+    const newAnswer = document.getElementById('answer-textarea-' + questionId).value;
+    
+    fetch('/questionnaires/{{ questionnaire.id }}/edit-answer/' + questionId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'answer=' + encodeURIComponent(newAnswer)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('answer-display-' + questionId).textContent = data.answer;
+            document.getElementById('answer-display-' + questionId).style.display = 'block';
+            document.getElementById('answer-editor-' + questionId).style.display = 'none';
+            
+            // Show edited badge
+            location.reload();
+        } else {
+            alert('Error saving answer: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+
+function regenerateQuestion(questionId) {
+    if (!confirm('Regenerate answer for this question?')) return;
+    
+    fetch('/questionnaires/{{ questionnaire.id }}/regenerate-question/' + questionId, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error regenerating answer: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+</script>
+{% endblock %}

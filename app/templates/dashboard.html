@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - QuestAI{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h1>Dashboard</h1>
+        <p>Manage your questionnaires and reference documents</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="fas fa-file-question"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.total_questionnaires }}</h3>
+                <p>Total Questionnaires</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.completed_questionnaires }}</h3>
+                <p>Completed</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon orange">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.total_documents }}</h3>
+                <p>Reference Documents</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="upload-section">
+        <div class="upload-card">
+            <h3><i class="fas fa-upload"></i> Upload Questionnaire</h3>
+            <p>Upload a questionnaire to generate answers automatically</p>
+            <form action="{{ url_for('questionnaire.upload_questionnaire') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+                <label class="file-input-label">
+                    <input type="file" name="file" accept=".pdf,.docx,.txt,.md,.xlsx,.xls" required onchange="this.form.submit()">
+                    <span class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Choose File
+                    </span>
+                </label>
+            </form>
+            <small class="file-hint">Supported: PDF, DOCX, TXT, XLSX</small>
+        </div>
+
+        <div class="upload-card">
+            <h3><i class="fas fa-book"></i> Upload Reference Document</h3>
+            <p>Add documents that contain answers to your questionnaires</p>
+            <form action="{{ url_for('documents.upload_document') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+                <label class="file-input-label">
+                    <input type="file" name="file" accept=".pdf,.docx,.txt,.md" required onchange="this.form.submit()">
+                    <span class="btn btn-secondary">
+                        <i class="fas fa-plus"></i> Choose File
+                    </span>
+                </label>
+            </form>
+            <small class="file-hint">Supported: PDF, DOCX, TXT, MD</small>
+        </div>
+    </div>
+
+    <!-- Questionnaires List -->
+    <div class="section">
+        <div class="section-header">
+            <h2><i class="fas fa-file-alt"></i> Your Questionnaires</h2>
+        </div>
+        
+        {% if questionnaires %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Status</th>
+                        <th>Questions</th>
+                        <th>Progress</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in questionnaires %}
+                    <tr>
+                        <td class="filename-cell">
+                            <i class="fas fa-file-alt file-icon"></i>
+                            <span>{{ q.original_filename }}</span>
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ q.status }}">
+                                {{ q.status.title() }}
+                            </span>
+                        </td>
+                        <td>{{ q.total_questions }}</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ (q.answered_questions / q.total_questions * 100) if q.total_questions > 0 else 0 }}%"></div>
+                            </div>
+                            <small>{{ q.answered_questions }}/{{ q.total_questions }}</small>
+                        </td>
+                        <td>{{ q.upload_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <a href="{{ url_for('questionnaire.view', id=q.id) }}" class="btn btn-small btn-primary">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-file-question"></i>
+            <p>No questionnaires yet. Upload your first questionnaire to get started!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Reference Documents List -->
+    <div class="section">
+        <div class="section-header">
+            <h2><i class="fas fa-book"></i> Reference Documents</h2>
+        </div>
+        
+        {% if documents %}
+        <div class="documents-grid">
+            {% for doc in documents %}
+            <div class="document-card">
+                <div class="document-icon">
+                    <i class="fas fa-{% if doc.file_type == 'pdf' %}file-pdf{% elif doc.file_type == 'docx' %}file-word{% else %}file-alt{% endif %}"></i>
+                </div>
+                <div class="document-info">
+                    <h4>{{ doc.original_filename }}</h4>
+                    <p>Uploaded {{ doc.upload_date.strftime('%Y-%m-%d') }}</p>
+                </div>
+                <form action="{{ url_for('documents.delete_document', doc_id=doc.id) }}" method="POST" class="delete-form">
+                    <button type="submit" class="btn-icon btn-danger" onclick="return confirm('Delete this document?')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-book"></i>
+            <p>No reference documents yet. Upload documents to use as sources for answers.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.original_filename }} - QuestAI{% endblock %}
+
+{% block content %}
+<div class="document-view-page">
+    <div class="page-header">
+        <div class="header-left">
+            <h1>
+                <i class="fas fa-{% if document.file_type == 'pdf' %}file-pdf{% elif document.file_type == 'docx' %}file-word{% else %}file-alt{% endif %}"></i>
+                {{ document.original_filename }}
+            </h1>
+            <p class="meta">
+                <span class="file-type-badge large">{{ document.file_type.upper() }}</span>
+                <span><i class="fas fa-calendar"></i> Uploaded {{ document.upload_date.strftime('%Y-%m-%d %H:%M') }}</span>
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('documents.list_documents') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Documents
+            </a>
+        </div>
+    </div>
+
+    <div class="document-content-wrapper">
+        <div class="document-content">
+            <h3>Document Content</h3>
+            <div class="content-text">
+                <pre>{{ document.content }}</pre>
+            </div>
+        </div>
+        
+        {% if document.chunks %}
+        <div class="document-chunks">
+            <h3>Processing Chunks ({{ document.chunks|length }})</h3>
+            <p class="chunks-info">The document has been split into chunks for better retrieval:</p>
+            
+            {% for chunk in document.chunks %}
+            <div class="chunk-card">
+                <div class="chunk-header">
+                    <span class="chunk-number">Chunk {{ chunk.chunk_index + 1 }}</span>
+                </div>
+                <div class="chunk-text">
+                    {{ chunk.chunk_text[:300] }}{% if chunk.chunk_text|length > 300 %}...{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
