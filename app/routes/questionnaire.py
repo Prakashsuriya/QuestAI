@@ -11,7 +11,7 @@ from app.models import (
     ReferenceDocument, QuestionnaireVersion
 )
 from app.services.document_parser import DocumentParser
-from app.services.rag_engine import RAGEngine
+from app.services.simple_rag_engine import SimpleRAGEngine
 from app.services.export_service import ExportService
 
 questionnaire_bp = Blueprint('questionnaire', __name__, url_prefix='/questionnaires')
@@ -136,15 +136,8 @@ def generate_answers(id):
         questionnaire.status = 'processing'
         db.session.commit()
         
-        # Generate answers using RAG
-        try:
-            rag_engine = RAGEngine()
-        except Exception as e:
-            print(f"RAG Engine initialization error: {e}")
-            flash('Error initializing AI engine. Using fallback mode.', 'warning')
-            questionnaire.status = 'uploaded'
-            db.session.commit()
-            return redirect(url_for('questionnaire.view', id=id))
+        # Generate answers using RAG (lightweight version for Render)
+        rag_engine = SimpleRAGEngine()
         
         questions = Question.query.filter_by(questionnaire_id=id).order_by(Question.question_number).all()
         

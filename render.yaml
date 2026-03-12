@@ -6,13 +6,23 @@ services:
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
-    startCommand: gunicorn run:app --bind 0.0.0.0:$PORT
+    startCommand: |
+      gunicorn run:app \\
+        --bind 0.0.0.0:$PORT \\
+        --workers 1 \\
+        --threads 2 \\
+        --timeout 60 \\
+        --max-requests 100 \\
+        --max-requests-jitter 50 \\
+        --log-level info
     envVars:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        value: sqlite:///questionnaire_app.db
+        value: sqlite:///tmp/questionnaire_app.db
       - key: FLASK_ENV
         value: production
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: WEB_CONCURRENCY
+        value: 1
