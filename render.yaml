@@ -3,7 +3,9 @@ services:
     name: questai
     runtime: python
     pythonVersion: 3.11.0
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
     startCommand: gunicorn run:app
     envVars:
       - key: SECRET_KEY
@@ -12,3 +14,5 @@ services:
         value: sqlite:///questionnaire_app.db
       - key: FLASK_ENV
         value: production
+      - key: PYTHON_VERSION
+        value: 3.11.0
