@@ -6,11 +6,9 @@ An AI-powered application that automates the process of answering structured que
 [![Flask](https://img.shields.io/badge/Flask-3.0+-green.svg)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 📹 Demo Video
+**GitHub Repository:** [https://github.com/Prakashsuriya/QuestAI](https://github.com/Prakashsuriya/QuestAI)
 
-[Watch Demo Video](https://your-demo-video-link-here)
-
-**Live Application:** [http://localhost:5000](http://localhost:5000) (Local Development)
+**Live Application:** [https://questai-xyi1.onrender.com](https://questai-xyi1.onrender.com)
 
 ---
 
@@ -18,7 +16,6 @@ An AI-powered application that automates the process of answering structured que
 
 - [Overview](#overview)
 - [Key Features](#key-features)
-- [Screenshots](#screenshots)
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
 - [Installation](#installation)
@@ -74,22 +71,6 @@ Reference Documents → AI Processing → Generated Answers → Review → Expor
 | Partial Regeneration | ✅ | Regenerate answers for individual questions |
 | Version History | ✅ | Automatic versioning of answer sets |
 | Coverage Summary | ✅ | Dashboard showing answered/not found stats |
-
----
-
-## 📸 Screenshots
-
-### Dashboard
-![Dashboard](docs/screenshots/dashboard.png)
-*Main dashboard showing questionnaires and reference documents*
-
-### Questionnaire View
-![Questionnaire](docs/screenshots/questionnaire.png)
-*Questionnaire with generated answers, confidence scores, and citations*
-
-### Answer Review
-![Answer Review](docs/screenshots/answer_review.png)
-*Review and edit generated answers with evidence snippets*
 
 ---
 
