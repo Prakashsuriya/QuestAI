@@ -3,18 +3,8 @@ services:
     name: questai
     runtime: python
     pythonVersion: 3.11.0
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-    startCommand: |
-      gunicorn run:app \\
-        --bind 0.0.0.0:$PORT \\
-        --workers 1 \\
-        --threads 2 \\
-        --timeout 60 \\
-        --max-requests 100 \\
-        --max-requests-jitter 50 \\
-        --log-level info
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120 --max-requests 500 --max-requests-jitter 50
     envVars:
       - key: SECRET_KEY
         generateValue: true
@@ -24,5 +14,3 @@ services:
         value: production
       - key: PYTHON_VERSION
         value: 3.11.0
-      - key: WEB_CONCURRENCY
-        value: 1
