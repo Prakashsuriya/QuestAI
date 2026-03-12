@@ -16,7 +16,11 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-12345')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///questionnaire_app.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'documents')
+    # Use /tmp for Render (ephemeral storage) or local documents folder for development
+    if os.path.exists('/tmp'):
+        app.config['UPLOAD_FOLDER'] = '/tmp/documents'
+    else:
+        app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'documents')
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
     
     # Initialize extensions

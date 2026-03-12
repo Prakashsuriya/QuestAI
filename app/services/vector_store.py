@@ -9,7 +9,11 @@ class VectorStore:
     """Vector database for document embeddings using ChromaDB."""
     
     def __init__(self, collection_name: str = "documents"):
-        self.persist_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'chroma_db')
+        # Use /tmp for Render (ephemeral storage) or local chroma_db for development
+        if os.path.exists('/tmp'):
+            self.persist_directory = '/tmp/chroma_db'
+        else:
+            self.persist_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'chroma_db')
         os.makedirs(self.persist_directory, exist_ok=True)
         
         # Initialize ChromaDB client
