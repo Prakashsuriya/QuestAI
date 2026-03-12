@@ -137,7 +137,15 @@ def generate_answers(id):
         db.session.commit()
         
         # Generate answers using RAG
-        rag_engine = RAGEngine()
+        try:
+            rag_engine = RAGEngine()
+        except Exception as e:
+            print(f"RAG Engine initialization error: {e}")
+            flash('Error initializing AI engine. Using fallback mode.', 'warning')
+            questionnaire.status = 'uploaded'
+            db.session.commit()
+            return redirect(url_for('questionnaire.view', id=id))
+        
         questions = Question.query.filter_by(questionnaire_id=id).order_by(Question.question_number).all()
         
         for question in questions:
