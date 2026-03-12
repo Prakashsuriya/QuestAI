@@ -6,7 +6,6 @@ import uuid
 from app import db
 from app.models import ReferenceDocument, DocumentChunk
 from app.services.document_parser import DocumentParser
-from app.services.vector_store import VectorStore
 
 documents_bp = Blueprint('documents', __name__, url_prefix='/documents')
 
@@ -63,9 +62,8 @@ def upload_document():
         db.session.add(doc)
         db.session.commit()
         
-        # Create chunks and add to vector store
+        # Create chunks for reference (no vector store on Render free tier)
         chunks = parser.create_chunks(content)
-        vector_store = VectorStore()
         
         for i, chunk_text in enumerate(chunks):
             chunk = DocumentChunk(
@@ -74,16 +72,6 @@ def upload_document():
                 chunk_index=i
             )
             db.session.add(chunk)
-            db.session.flush()
-            
-            # Add to vector store
-            embedding_id = vector_store.add_document(chunk_text, {
-                'document_id': doc.id,
-                'chunk_id': chunk.id,
-                'filename': original_filename,
-                'user_id': current_user.id
-            })
-            chunk.embedding_id = embedding_id
         
         db.session.commit()
         
@@ -108,17 +96,11 @@ def delete_document(doc_id):
         return redirect(url_for('documents.list_documents'))
     
     try:
-        # Remove from vector store
-        vector_store = VectorStore()
-        for chunk in doc.chunks:
-            if chunk.embedding_id:
-                vector_store.delete_document(chunk.embedding_id)
-        
         # Remove file
         if os.path.exists(doc.file_path):
             os.remove(doc.file_path)
         
-        # Remove from database
+        # Remove from database (chunks cascade delete)
         db.session.delete(doc)
         db.session.commit()
         
