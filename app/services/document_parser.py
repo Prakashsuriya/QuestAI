@@ -18,6 +18,8 @@ class DocumentParser:
             return self._parse_text(file_path)
         elif file_type.lower() in ['xlsx', 'xls']:
             return self._parse_excel(file_path)
+        elif file_type.lower() == 'csv':
+            return self._parse_csv(file_path)
         else:
             raise ValueError(f"Unsupported file type: {file_type}")
     
@@ -48,6 +50,11 @@ class DocumentParser:
         df = pd.read_excel(file_path)
         return df.to_string(index=False)
     
+    def _parse_csv(self, file_path: str) -> str:
+        """Parse CSV file and convert to text."""
+        df = pd.read_csv(file_path)
+        return df.to_string(index=False)
+    
     def create_chunks(self, text: str, chunk_size: int = 1000, overlap: int = 200) -> List[str]:
         """Split text into overlapping chunks for better retrieval."""
         chunks = []
@@ -76,12 +83,30 @@ class DocumentParser:
         """Parse a questionnaire and extract questions."""
         if file_type.lower() in ['xlsx', 'xls']:
             return self._parse_excel_questionnaire(file_path)
+        elif file_type.lower() == 'csv':
+            return self._parse_csv_questionnaire(file_path)
         else:
             return self._parse_text_questionnaire(file_path)
     
     def _parse_excel_questionnaire(self, file_path: str) -> List[Dict[str, Any]]:
         """Parse Excel questionnaire format."""
         df = pd.read_excel(file_path)
+        questions = []
+        
+        # Expected columns: Question Number, Question, Category (optional)
+        for _, row in df.iterrows():
+            question_text = str(row.get('Question', row.get('Question Text', ''))).strip()
+            if question_text and question_text.lower() not in ['nan', 'none', '']:
+                questions.append({
+                    'text': question_text,
+                    'category': str(row.get('Category', 'General')).strip()
+                })
+        
+        return questions
+    
+    def _parse_csv_questionnaire(self, file_path: str) -> List[Dict[str, Any]]:
+        """Parse CSV questionnaire format."""
+        df = pd.read_csv(file_path)
         questions = []
         
         # Expected columns: Question Number, Question, Category (optional)

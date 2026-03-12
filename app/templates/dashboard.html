@@ -47,13 +47,13 @@
             <p>Upload a questionnaire to generate answers automatically</p>
             <form action="{{ url_for('questionnaire.upload_questionnaire') }}" method="POST" enctype="multipart/form-data" class="upload-form">
                 <label class="file-input-label">
-                    <input type="file" name="file" accept=".pdf,.docx,.txt,.md,.xlsx,.xls" required onchange="this.form.submit()">
+                    <input type="file" name="file" accept=".pdf,.docx,.txt,.md,.xlsx,.xls,.csv" required onchange="this.form.submit()">
                     <span class="btn btn-primary">
                         <i class="fas fa-plus"></i> Choose File
                     </span>
                 </label>
             </form>
-            <small class="file-hint">Supported: PDF, DOCX, TXT, XLSX</small>
+            <small class="file-hint">Supported: PDF, DOCX, TXT, XLSX, CSV</small>
         </div>
 
         <div class="upload-card">
@@ -61,13 +61,13 @@
             <p>Add documents that contain answers to your questionnaires</p>
             <form action="{{ url_for('documents.upload_document') }}" method="POST" enctype="multipart/form-data" class="upload-form">
                 <label class="file-input-label">
-                    <input type="file" name="file" accept=".pdf,.docx,.txt,.md" required onchange="this.form.submit()">
+                    <input type="file" name="file" accept=".pdf,.docx,.txt,.md,.csv" required onchange="this.form.submit()">
                     <span class="btn btn-secondary">
                         <i class="fas fa-plus"></i> Choose File
                     </span>
                 </label>
             </form>
-            <small class="file-hint">Supported: PDF, DOCX, TXT, MD</small>
+            <small class="file-hint">Supported: PDF, DOCX, TXT, MD, CSV</small>
         </div>
     </div>
 

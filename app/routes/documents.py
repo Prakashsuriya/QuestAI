@@ -10,7 +10,7 @@ from app.services.vector_store import VectorStore
 
 documents_bp = Blueprint('documents', __name__, url_prefix='/documents')
 
-ALLOWED_EXTENSIONS = {'pdf', 'docx', 'txt', 'md'}
+ALLOWED_EXTENSIONS = {'pdf', 'docx', 'txt', 'md', 'csv'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

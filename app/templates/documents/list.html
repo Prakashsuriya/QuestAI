@@ -13,11 +13,11 @@
     <div class="upload-section-inline">
         <form action="{{ url_for('documents.upload_document') }}" method="POST" enctype="multipart/form-data">
             <label class="file-input-label btn btn-primary">
-                <input type="file" name="file" accept=".pdf,.docx,.txt,.md" required onchange="this.form.submit()">
+                <input type="file" name="file" accept=".pdf,.docx,.txt,.md,.csv" required onchange="this.form.submit()">
                 <i class="fas fa-plus"></i> Upload New Document
             </label>
         </form>
-        <span class="file-hint">Supported: PDF, DOCX, TXT, MD</span>
+        <span class="file-hint">Supported: PDF, DOCX, TXT, MD, CSV</span>
     </div>
 
     <!-- Documents List -->

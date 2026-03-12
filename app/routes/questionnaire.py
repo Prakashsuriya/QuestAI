@@ -16,7 +16,7 @@ from app.services.export_service import ExportService
 
 questionnaire_bp = Blueprint('questionnaire', __name__, url_prefix='/questionnaires')
 
-ALLOWED_EXTENSIONS = {'pdf', 'docx', 'txt', 'md', 'xlsx', 'xls'}
+ALLOWED_EXTENSIONS = {'pdf', 'docx', 'txt', 'md', 'xlsx', 'xls', 'csv'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

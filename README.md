@@ -57,7 +57,7 @@ Reference Documents → AI Processing → Generated Answers → Review → Expor
 | Feature | Status | Description |
 |---------|--------|-------------|
 | User Authentication | ✅ | Secure registration/login with bcrypt hashing |
-| Document Upload | ✅ | Support for PDF, DOCX, TXT, MD, XLSX formats |
+| Document Upload | ✅ | Support for PDF, DOCX, TXT, MD, XLSX, CSV formats |
 | Persistent Storage | ✅ | SQLite database with SQLAlchemy ORM |
 | Questionnaire Parsing | ✅ | Automatic extraction of questions from documents |
 | AI Answer Generation | ✅ | RAG pipeline with semantic search |
